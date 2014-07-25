@@ -88,7 +88,6 @@ def StoreSpectrum (s, ExperimentNo):
 
 # globals
 error = sys.maxint
-matrix_size = 1
 ExperimentNo = 0
 
 # create and connect to DB
@@ -99,6 +98,7 @@ cur.execute('''CREATE TABLE IF NOT EXISTS Experiments(
                 ExperimentNo INTEGER,
                 ClusterorDistribution varchar(100),
                 Type varchar(100),
+                MatrixSize INTEGER,
                 NumUniqueEigenvals INTEGER,
                 NumIterations INTEGER
             )''')
@@ -111,75 +111,80 @@ cur.execute('''CREATE TABLE IF NOT EXISTS Experiments(
 # -- DISTRIBUTIONS -- 
 
 # Normal
-# while (matrix_size < 10000):
-#     loc, scale = 10, 1
-#     s = np.random.Normal(loc, scale, matrix_size)
-#     s = s.round()
-#     b = np.random.random_integers(0, high=matrix_size, size=(matrix_size, 1.))
-#     A = np.diag(s)
-#     x = scipy.sparse.linalg.cg(A,b)
-#     print EigenvalsWithAlMu(s)
-#     matrix_size*=10
-
-# matrix_size = 1
-
-# # Binomial
-# while (matrix_size < 10000):
-#     loc, scale = 10, 1
-#     s = np.random.logistic(loc, scale, matrix_size)
-#     s = s.round()
-#     b = np.random.random_integers(0, high=matrix_size, size=(matrix_size, 1.))
-#     A = np.diag(s)
-#     x = scipy.sparse.linalg.cg(A,b)
-#     print EigenvalsWithAlMu(s)
-#     matrix_size*=10
-
-# matrix_size = 1
-
-# # Uniform
-# while (matrix_size < 10000):
-#     loc, scale = 10, 1
-#     s = np.random.uniform(loc, scale, matrix_size)
-#     s = s.round()
-#     b = np.random.random_integers(0, high=matrix_size, size=(matrix_size, 1.))
-#     A = np.diag(s)
-#     x = scipy.sparse.linalg.cg(A,b)
-#     print EigenvalsWithAlMu(s)
-#     matrix_size*=10
-
-# matrix_size = 1
-
-# # Exponential
-# while (matrix_size < 10000):
-#     loc, scale = 10, 1
-#     s = np.random.exponential(loc, scale, matrix_size)
-#     s = s.round()
-#     b = np.random.random_integers(0, high=matrix_size, size=(matrix_size, 1.))
-#     A = np.diag(s)
-#     x = scipy.sparse.linalg.cg(A,b)
-#     print EigenvalsWithAlMu(s)
-#     matrix_size*=10
-
-# matrix_size = 1
-
-# Logistic 
-
-while (matrix_size < 10000):
-    # compute spectrum w/ algebraic multiplicity
-    loc, scale = 10, 1
-    s = np.random.logistic(loc, scale, matrix_size)
-    s = s.round()
-    b = np.random.random_integers(0, high=matrix_size, size=(matrix_size, 1.))
-    A = np.diag(s)
-    NumIterations = scipy.sparse.linalg.cg(A,b) # overriden
-    # store eigenvalues and almu per experiment, returns NumUniqueEigenvals
-    NumUniqueEigenvals = StoreSpectrum(s, ExperimentNo)
-    cur.execute('''INSERT INTO Experiments(ExperimentNo, ClusterorDistribution, Type, NumUniqueEigenvals, NumIterations) VALUES (?,?,?,?,?)''', (ExperimentNo, "Distribution", "Logistic", NumUniqueEigenvals, NumIterations))
-    db.commit()
-    ExperimentNo+=1
-    matrix_size*=10
-
 matrix_size = 1
+while (matrix_size <= 1000):
+    loc = 10
+    scale = 1
+    for j in range(0,5):
+        s = np.random.normal(loc, scale, matrix_size)
+        s = s.round()
+        b = np.random.random_integers(0, high=matrix_size, size=(matrix_size, 1.))
+        A = np.diag(s)
+        NumIterations = scipy.sparse.linalg.cg(A,b) # overriden
+        NumUniqueEigenvals = StoreSpectrum(s, ExperimentNo)
+        print ExperimentNo
+        cur.execute('''INSERT INTO Experiments(ExperimentNo, ClusterorDistribution, Type, MatrixSize, NumUniqueEigenvals, NumIterations) VALUES (?,?,?,?,?,?)''', (ExperimentNo, "Distribution", "Normal", matrix_size, NumUniqueEigenvals, NumIterations))
+        db.commit()
+        ExperimentNo+=1
+    matrix_size+=10
+
+print "Normal Done"
+# Uniform
+matrix_size = 1
+while (matrix_size <= 1000):
+    low = 0
+    high = 20
+    for j in range(0,5):
+        s = np.random.uniform(low, high, matrix_size)
+        s = s.round()
+        b = np.random.random_integers(0, high=matrix_size, size=(matrix_size, 1.))
+        A = np.diag(s)
+        NumIterations = scipy.sparse.linalg.cg(A,b) # overriden
+        NumUniqueEigenvals = StoreSpectrum(s, ExperimentNo)
+        print ExperimentNo
+        cur.execute('''INSERT INTO Experiments(ExperimentNo, ClusterorDistribution, Type, MatrixSize, NumUniqueEigenvals, NumIterations) VALUES (?,?,?,?,?,?)''', (ExperimentNo, "Distribution", "Uniform", matrix_size, NumUniqueEigenvals, NumIterations))
+        db.commit()
+        ExperimentNo+=1
+    matrix_size+=10
+
+print "Uniform Done"
+# Exponential
+matrix_size = 1
+while (matrix_size <= 1000):
+    scale = 1
+    for j in range(0,5):
+        s = np.random.exponential(scale, matrix_size)
+        s = s.round()
+        b = np.random.random_integers(0, high=matrix_size, size=(matrix_size, 1.))
+        A = np.diag(s)
+        NumIterations = scipy.sparse.linalg.cg(A,b) # overriden
+        NumUniqueEigenvals = StoreSpectrum(s, ExperimentNo)
+        print ExperimentNo
+        cur.execute('''INSERT INTO Experiments(ExperimentNo, ClusterorDistribution, Type, MatrixSize, NumUniqueEigenvals, NumIterations) VALUES (?,?,?,?,?,?)''', (ExperimentNo, "Distribution", "Exponential", matrix_size, NumUniqueEigenvals, NumIterations))
+        db.commit()
+        ExperimentNo+=1
+    matrix_size+=10
+
+print "Exponential Done"
+# Logistic 
+matrix_size = 1
+while (matrix_size <= 1000):
+    loc = 10
+    scale = 1
+    for j in range(0,5):
+        s = np.random.logistic(loc, scale, matrix_size)
+        s = s.round()
+        b = np.random.random_integers(0, high=matrix_size, size=(matrix_size, 1.))
+        A = np.diag(s)
+        NumIterations = scipy.sparse.linalg.cg(A,b) # overriden
+        NumUniqueEigenvals = StoreSpectrum(s, ExperimentNo)
+        print ExperimentNo
+        cur.execute('''INSERT INTO Experiments(ExperimentNo, ClusterorDistribution, Type, MatrixSize, NumUniqueEigenvals, NumIterations) VALUES (?,?,?,?,?,?)''', (ExperimentNo, "Distribution", "Logistic", matrix_size, NumUniqueEigenvals, NumIterations))
+        db.commit()
+        ExperimentNo+=1
+    matrix_size+=10
+
+print "Logistic Done. We're done here...check your database"
 #count, bins, ignored = plt.hist(s, bin=50)
 
 
